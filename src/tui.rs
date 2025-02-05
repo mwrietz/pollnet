@@ -74,7 +74,7 @@ pub fn print_page_header(title: &str) {
         },
     );
     println!();
-    horiz_line(Color::DarkBlue);
+    horiz_line(Color::White);
     cursor_move(0, 4);
 }
 

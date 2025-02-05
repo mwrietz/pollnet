@@ -1,4 +1,3 @@
-//use crate::myip;
 use crate::nmap;
 use crate::ping;
 use crate::tui;
@@ -13,6 +12,7 @@ pub fn start() {
     let menu_items = vec![("p", "Poll_Network"), ("q", "Quit")];
 
     loop {
+        //tui::print_page_header("");
         let selection = tui::menu_horiz(&menu_items);
         match selection {
             'p' => selection_p(),
@@ -67,10 +67,12 @@ fn selection_p() {
             Some(status) => status.as_str(),
             None => "",
         };
-        tui::clear_line();
-        let line_num = format!("    {:>3}: ", i);
-        tui::print_color(line_num.as_str(), Color::Blue);
-        println!("{:16} {:20} {:10}", ip, hostname, up);
+        if up.contains("up") {
+            tui::clear_line();
+            let line_num = format!("    {:>3}: ", i);
+            tui::print_color(line_num.as_str(), Color::Blue);
+            println!("{:16} {:20} {:10}", ip, hostname, up);
+        }
     }
 }
 

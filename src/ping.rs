@@ -1,17 +1,20 @@
 use crate::nmap;
+use crate::tui;
 
 pub fn check_all(ip_vec: &mut Vec<String>, up_map: &mut nmap::Map) {
+    let mut progress_bar = ".".to_string();
     for ip in ip_vec {
-        print!("    {:16} ", ip);
+        tui::cursor_move(0, 6);
+        print!("{}{}", progress_bar, ip);
 
         //if map doesn't contain status then ping check and log status in hashmap
         if !up_map.contains_key(ip.as_str()) {
             if address_is_up(ip.as_str()) {
                 up_map.insert(ip.to_string(), "up".to_string());
-                print!("up");
+                print!("+up");
             } else {
                 up_map.insert(ip.to_string(), "down".to_string());
-                print!("down");
+                print!("+dn");
             }
         }
         // else get status from hashmap
@@ -20,9 +23,10 @@ pub fn check_all(ip_vec: &mut Vec<String>, up_map: &mut nmap::Map) {
                 Some(value) => value,
                 None => "",
             };
-            print!("{}", status);
+            print!("+{}", status);
         }
-        println!();
+        //println!();
+        progress_bar.push_str(".");
     }
 }
 
