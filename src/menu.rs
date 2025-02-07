@@ -5,14 +5,9 @@ use crate::tui;
 use crossterm::style::Color;
 
 pub fn start() {
-    tui::cls();
-
-    tui::print_page_header("");
-
     let menu_items = vec![("p", "Poll_Network"), ("q", "Quit")];
 
     loop {
-        //tui::print_page_header("");
         let selection = tui::menu_horiz(&menu_items);
         match selection {
             'p' => selection_p(),
@@ -31,34 +26,43 @@ fn selection_p() {
     let mut hostname_map = nmap::Map::new();
     let mut up_map = nmap::Map::new();
 
-    tui::cursor_move(0, 4);
-    tui::clear_line();
-    println!("nmap_poll...");
-    nmap::poll(&mut ip_vec, &mut hostname_map, &mut up_map);
+    let (terminal_width, terminal_height) = tui::tsize();
 
-    tui::cursor_move(0, 4);
-    tui::clear_line();
-    println!("ping_check...");
-    ping::check_all(&mut ip_vec, &mut up_map);
+    let mut mfrm = tui::MsgFrame {
+        frame: tui::Frame {
+            title: "nmap",
+            title_color: Color::Blue,
+            frame_color: Color::Green,
+            x: 0,
+            y: terminal_height - 4,
+            w: terminal_width,
+            h: 4,
+        },
+        msg: Vec::new(),
+    };
+    //tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
 
-    tui::cursor_move(0, 4);
-    tui::clear_line();
-    println!("Final Summary:");
-    tui::cursor_move(0, 5);
-    tui::clear_line();
-    tui::cursor_move(0, 6);
-    tui::clear_line();
+    nmap::poll(&mut ip_vec, &mut hostname_map, &mut up_map, &mut mfrm);
+
+    //mfrm.frame.title = "ping_check...";
+    //tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
+    ping::check_all(&mut ip_vec, &mut up_map, &mut mfrm);
+    //mfrm.msg.pop();
+
+    mfrm.frame.title = "Final Summary";
+    tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
     let headers = format!(
         "         {:16} {:20} {:10}\n",
         "ip:", "hostname:", "status:"
     );
-    tui::print_color(headers.as_str(), Color::Blue);
+    tui::push_msg_and_update_frame(&mut mfrm, headers);
     let headers = format!(
         "         {:16} {:20} {:10}\n",
         "--------------", "------------------", "-------"
     );
-    tui::print_color(headers.as_str(), Color::Blue);
+    tui::push_msg_and_update_frame(&mut mfrm, headers);
     for (i, ip) in ip_vec.iter().enumerate() {
+        let mut buf = String::from("");
         let hostname = match hostname_map.get(ip) {
             Some(name) => name.as_str(),
             None => "",
@@ -67,13 +71,14 @@ fn selection_p() {
             Some(status) => status.as_str(),
             None => "",
         };
-        if up.contains("up") {
-            tui::clear_line();
-            let line_num = format!("    {:>3}: ", i);
-            tui::print_color(line_num.as_str(), Color::Blue);
-            println!("{:16} {:20} {:10}", ip, hostname, up);
-        }
+        // if up.contains("up") {
+        //     buf.push_str(format!("    {:>3}: {:16} {:20} {:10}", i, ip, hostname, up).as_str());
+        //     tui::push_msg_and_update_frame(&mut mfrm, buf.clone());
+        // }
+        buf.push_str(format!("    {:>3}: {:16} {:20} {:10}", i, ip, hostname, up).as_str());
+        tui::push_msg_and_update_frame(&mut mfrm, buf.clone());
     }
+    tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
 }
 
 fn selection_q() {

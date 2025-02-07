@@ -46,38 +46,6 @@ pub fn menu_horiz(items: &[(&str, &str)]) -> char {
     _a as char
 }
 
-pub fn print_page_header(title: &str) {
-    print_title(title, Color::DarkBlue);
-
-    // print version right justified
-    let (w, _h) = tsize();
-    let prog_name = get_prog_name();
-    let version = format!("v{}", env!("CARGO_PKG_VERSION"));
-    let offset = prog_name.len() + version.len() + 2;
-    cursor_move(w - offset, 1);
-
-    print_color(
-        prog_name.as_str(),
-        Color::Rgb {
-            r: 255,
-            g: 135,
-            b: 0,
-        },
-    );
-    print_color(" ", Color::Black);
-    print_color(
-        version.as_str(),
-        Color::Rgb {
-            r: 255,
-            g: 135,
-            b: 0,
-        },
-    );
-    println!();
-    horiz_line(Color::White);
-    cursor_move(0, 4);
-}
-
 fn print_prog_name_block() {
     let prog_name = get_prog_name();
     execute!(
@@ -442,7 +410,7 @@ impl Frame<'_> {
 
 pub struct MsgFrame<'a> {
     pub frame: Frame<'a>,
-    pub msg: Vec<&'a str>,
+    pub msg: Vec<String>,
 }
 
 impl MsgFrame<'_> {
@@ -462,4 +430,72 @@ impl MsgFrame<'_> {
             }
         }
     }
+    pub fn fit_height(&mut self) {
+        self.frame.h = self.msg.len() + 1;
+    }
+}
+
+// pub struct MsgFrame<'a> {
+//     pub frame: Frame<'a>,
+//     pub msg: Vec<&'a str>,
+// }
+//
+// impl MsgFrame<'_> {
+//     pub fn display_msg(&self) {
+//         for i in 0..self.msg.len() {
+//             if self.msg.len() > (self.frame.h - 1) {
+//                 if i > (self.msg.len() - self.frame.h) {
+//                     cursor_move(
+//                         self.frame.x + 2,
+//                         self.frame.y + (i - (self.msg.len() - self.frame.h)),
+//                     );
+//                     print!("{}", self.msg[i]);
+//                 }
+//             } else {
+//                 cursor_move(self.frame.x + 2, self.frame.y + (i + 1));
+//                 print!("{}", self.msg[i]);
+//             }
+//         }
+//     }
+// }
+
+pub fn print_page_header(y: usize) {
+    // print version right justified
+    let (w, _h) = tsize();
+    let prog_name = get_prog_name();
+    let version = format!("v{}", env!("CARGO_PKG_VERSION"));
+    let offset = prog_name.len() + version.len() + 2;
+    cursor_move(w - offset, y);
+
+    print_color(
+        prog_name.as_str(),
+        Color::Rgb {
+            r: 255,
+            g: 135,
+            b: 0,
+        },
+    );
+    print_color(" ", Color::Black);
+    print_color(
+        version.as_str(),
+        Color::Rgb {
+            r: 255,
+            g: 135,
+            b: 0,
+        },
+    );
+    println!();
+    cursor_move(0, y);
+}
+
+pub fn push_msg_and_update_frame(mfrm: &mut MsgFrame, msg: String) {
+    let (_w, h) = tsize();
+    mfrm.msg.push(msg);
+    //mfrm.frame.h = mfrm.msg.len() + 1;
+    mfrm.fit_height();
+    mfrm.frame.y = h - mfrm.frame.h - 2;
+    print_page_header(mfrm.frame.y - 1);
+    mfrm.frame.display();
+    mfrm.frame.clear();
+    mfrm.display_msg();
 }

@@ -1,10 +1,16 @@
 use crate::myip;
+use crate::tui;
 
 pub type Map = std::collections::HashMap<String, String>;
 
-pub fn poll(ip_vec: &mut Vec<String>, hostname_map: &mut Map, up_map: &mut Map) {
-    poll_all(ip_vec, hostname_map);
-    poll_up(ip_vec, hostname_map, up_map);
+pub fn poll(
+    ip_vec: &mut Vec<String>,
+    hostname_map: &mut Map,
+    up_map: &mut Map,
+    mfrm: &mut tui::MsgFrame,
+) {
+    poll_all(ip_vec, hostname_map, mfrm);
+    poll_up(ip_vec, hostname_map, up_map, mfrm);
     ip_vec.sort();
     ip_vec.dedup();
 
@@ -34,7 +40,7 @@ pub fn poll(ip_vec: &mut Vec<String>, hostname_map: &mut Map, up_map: &mut Map) 
 }
 
 // nmap -sn -Pn
-pub fn poll_all(ip_vec: &mut Vec<String>, hostname_map: &mut Map) {
+pub fn poll_all(ip_vec: &mut Vec<String>, hostname_map: &mut Map, mfrm: &mut tui::MsgFrame) {
     // get my ip address and network address
     let ip_address = myip::get_ip_address();
 
@@ -49,6 +55,20 @@ pub fn poll_all(ip_vec: &mut Vec<String>, hostname_map: &mut Map) {
         }
         net_address.push_str(".");
     }
+
+    tui::cursor_move(0, 10);
+    println!("test 0");
+
+    mfrm.frame.title = "Poll All";
+    while mfrm.msg.len() > 0 {
+        mfrm.msg.remove(0);
+    }
+    //tui::push_msg_and_update_frame(mfrm, format!("msg len {}", mfrm.msg.len()));
+    //tui::push_msg_and_update_frame(mfrm, format!("msg len {}", mfrm.msg.len()));
+    tui::push_msg_and_update_frame(mfrm, format!("nmap -sn -Pn {}", net_address.clone()));
+
+    tui::cursor_move(0, 10);
+    println!("test 1");
 
     let output = std::process::Command::new("nmap")
         .arg("-sn")
@@ -83,7 +103,12 @@ pub fn poll_all(ip_vec: &mut Vec<String>, hostname_map: &mut Map) {
 }
 
 // nmap -sn
-pub fn poll_up(ip_vec: &mut Vec<String>, hostname_map: &mut Map, up_map: &mut Map) {
+pub fn poll_up(
+    ip_vec: &mut Vec<String>,
+    hostname_map: &mut Map,
+    up_map: &mut Map,
+    mfrm: &mut tui::MsgFrame,
+) {
     // get my ip address and network address
     let ip_address = myip::get_ip_address();
     let parts: Vec<&str> = ip_address.split('.').collect();
@@ -97,6 +122,20 @@ pub fn poll_up(ip_vec: &mut Vec<String>, hostname_map: &mut Map, up_map: &mut Ma
         }
         net_address.push_str(".");
     }
+
+    tui::cursor_move(0, 10);
+    println!("test 3");
+
+    mfrm.frame.title = "Poll Up";
+    while mfrm.msg.len() > 0 {
+        mfrm.msg.remove(0);
+    }
+    //tui::push_msg_and_update_frame(mfrm, format!("msg len {}", mfrm.msg.len()));
+    //tui::push_msg_and_update_frame(mfrm, format!("msg len {}", mfrm.msg.len()));
+    tui::push_msg_and_update_frame(mfrm, format!("nmap -sn {}", net_address.clone()));
+
+    tui::cursor_move(0, 10);
+    println!("test 4");
 
     let output = std::process::Command::new("nmap")
         .arg("-sn")
