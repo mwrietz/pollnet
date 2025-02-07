@@ -12,8 +12,6 @@ pub fn start() {
         match selection {
             'p' => selection_p(),
             'q' => {
-                tui::cls();
-                tui::show_cursor();
                 selection_q();
             }
             _ => break,
@@ -40,14 +38,10 @@ fn selection_p() {
         },
         msg: Vec::new(),
     };
-    //tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
 
     nmap::poll(&mut ip_vec, &mut hostname_map, &mut up_map, &mut mfrm);
 
-    //mfrm.frame.title = "ping_check...";
-    //tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
     ping::check_all(&mut ip_vec, &mut up_map, &mut mfrm);
-    //mfrm.msg.pop();
 
     mfrm.frame.title = "Final Summary";
     tui::push_msg_and_update_frame(&mut mfrm, "".to_string());
@@ -71,10 +65,6 @@ fn selection_p() {
             Some(status) => status.as_str(),
             None => "",
         };
-        // if up.contains("up") {
-        //     buf.push_str(format!("    {:>3}: {:16} {:20} {:10}", i, ip, hostname, up).as_str());
-        //     tui::push_msg_and_update_frame(&mut mfrm, buf.clone());
-        // }
         buf.push_str(format!("    {:>3}: {:16} {:20} {:10}", i, ip, hostname, up).as_str());
         tui::push_msg_and_update_frame(&mut mfrm, buf.clone());
     }
@@ -82,5 +72,8 @@ fn selection_p() {
 }
 
 fn selection_q() {
+    let (_terminal_width, terminal_height) = tui::tsize();
+    tui::cursor_move(0, terminal_height);
+    tui::show_cursor();
     std::process::exit(0);
 }

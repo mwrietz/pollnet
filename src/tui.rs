@@ -465,6 +465,9 @@ pub fn print_page_header(y: usize) {
     let prog_name = get_prog_name();
     let version = format!("v{}", env!("CARGO_PKG_VERSION"));
     let offset = prog_name.len() + version.len() + 2;
+
+    cursor_move(0, y);
+    clear_line();
     cursor_move(w - offset, y);
 
     print_color(
